@@ -1,0 +1,34 @@
+version: "3.9"
+
+# ─── Common build / volume / env settings ─────────────────────────
+x-common: &common
+  build:
+    context: .          # use the same Dockerfile in project root
+  volumes:
+    - .:/app            # matches WORKDIR /app in the Dockerfile
+  env_file:
+    - .env
+
+services:
+  web:
+    <<: *common
+    build:
+      context: .
+      target: web       # ⬅️  use the “web” stage from Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8000/healthz/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  bot:
+    <<: *common
+    build:
+      context: .
+      target: bot       # ⬅️  use the “bot” stage from Dockerfile
+    command: python manage.py telegrambot
+    depends_on:
+      - web

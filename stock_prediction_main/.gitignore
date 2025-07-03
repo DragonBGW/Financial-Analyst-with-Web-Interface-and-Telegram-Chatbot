@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env.*
+*.sqlite3
+db.sqlite3
+
+# Django
+/static/
+media/
+*.log
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+*.seed
+*.bak
+*.swp
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.nox/
+.cache/
+.pytest_cache/
+
+# Node (if you ever use npm/yarn for frontend)
+node_modules/
+
+# Ignore secrets
+*.pem
+*.key
+*.crt
+
+# Ignore migrations if you want (optional)
+# core/migrations/

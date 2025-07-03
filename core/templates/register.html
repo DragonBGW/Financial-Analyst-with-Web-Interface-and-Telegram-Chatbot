@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Register • Stock Insight{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+  <h1 class="text-2xl font-semibold mb-4">Create an account</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mt-3">
+      Register
+    </button>
+  </form>
+  <p class="text-sm mt-3">
+    Already have an account?
+    <a href="{% url 'login' %}" class="text-blue-600 underline">Login here</a>
+  </p>
+</div>
+{% endblock %}

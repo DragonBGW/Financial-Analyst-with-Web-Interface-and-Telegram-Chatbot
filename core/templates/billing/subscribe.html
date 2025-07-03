@@ -1,0 +1,33 @@
+<!-- templates/billing/subscribe.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Subscribe</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <h1>Upgrade to Pro</h1>
+    <p>Unlock full predictions, charts, and more.</p>
+    <button id="checkout-button">Subscribe for $9.99/month</button>
+
+    <script>
+        const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+        const checkoutBtn = document.getElementById("checkout-button");
+
+        checkoutBtn.addEventListener("click", function () {
+            fetch("{% url 'billing:create-checkout-session' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                return stripe.redirectToCheckout({ sessionId: data.session_id });
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    </script>
+</body>
+</html>

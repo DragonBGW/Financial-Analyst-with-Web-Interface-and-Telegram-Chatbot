@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Dashboard • Stock Insight{% endblock %}
+
+{% block content %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <!-- Ticker form -->
+  <div class="lg:col-span-1 bg-white p-5 rounded-xl shadow">
+    <h2 class="text-xl font-semibold mb-3">Predict Next‑Day Price</h2>
+    <form id="ticker-form" class="flex space-x-2">
+      <input id="ticker-input" type="text" placeholder="AAPL" maxlength="10"
+             class="flex-grow border rounded-lg p-2" required />
+      <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        Go
+      </button>
+    </form>
+    <p id="form-msg" class="text-sm text-gray-600 mt-2"></p>
+  </div>
+
+  <!-- Prediction Card -->
+  <div id="prediction-card" class="lg:col-span-2 hidden flex flex-col bg-white p-5 rounded-xl shadow">
+    <h2 class="text-xl font-semibold mb-3">Prediction</h2>
+    <p class="mb-2"><span class="font-medium">Ticker:</span> <span id="pred-ticker"></span></p>
+    <p class="mb-4">
+      <span class="font-medium">Next‑day price:</span>
+      <span id="pred-price" class="text-green-600 text-lg font-semibold"></span>
+    </p>
+    <div class="grid md:grid-cols-2 gap-4">
+      <img id="plot-closing" class="rounded-xl shadow" />
+      <img id="plot-cmp" class="rounded-xl shadow" />
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="lg:col-span-3 bg-white p-5 rounded-xl shadow">
+    <h2 class="text-xl font-semibold mb-3">Previous Predictions</h2>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b">
+          <th class="py-2 text-left">Date</th>
+          <th class="py-2 text-left">Ticker</th>
+          <th class="py-2 text-left">Price</th>
+          <th class="py-2 text-left">MSE</th>
+          <th class="py-2 text-left">R²</th>
+        </tr>
+      </thead>
+      <tbody id="hist-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Inline JS -->
+<script>
+const ACCESS_TOKEN = "{{ access_token|default:'' }}";
+
+async function fetchHistory() {
+  const res = await fetch('/api/v1/predictions/', {
+    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
+  });
+  if (!res.ok) return;
+  const data = await res.json();
+  const tbody = document.getElementById('hist-body');
+  tbody.innerHTML = '';
+  data.forEach(p => {
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr class="border-b">
+        <td class="py-1">${new Date(p.created).toLocaleString()}</td>
+        <td class="py-1">${p.ticker}</td>
+        <td class="py-1">${parseFloat(p.next_price).toFixed(2)}</td>
+        <td class="py-1">${p.mse.toExponential(2)}</td>
+        <td class="py-1">${p.r2.toFixed(3)}</td>
+      </tr>
+    `);
+  });
+}
+
+document.getElementById('ticker-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = document.getElementById('form-msg');
+  msg.textContent = 'Predicting…';
+  const ticker = document.getElementById('ticker-input').value.trim();
+  const res = await fetch('/api/v1/predict/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ACCESS_TOKEN}`
+    },
+    body: JSON.stringify({ ticker })
+  });
+  if (!res.ok) {
+    msg.textContent = 'Error: ' + (await res.text());
+    return;
+  }
+  const p = await res.json();
+  msg.textContent = 'Success!';
+  document.getElementById('prediction-card').classList.remove('hidden');
+  document.getElementById('pred-ticker').textContent = p.ticker;
+  document.getElementById('pred-price').textContent = parseFloat(p.next_price).toFixed(2);
+  document.getElementById('plot-closing').src = '/' + p.plot_closing.replace(/\\\\/g, '/');
+  document.getElementById('plot-cmp').src     = '/' + p.plot_cmp.replace(/\\\\/g, '/');
+  fetchHistory();
+});
+
+// initial load
+if (ACCESS_TOKEN) fetchHistory();
+</script>
+{% endblock %}
+
