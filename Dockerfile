@@ -1,15 +1,26 @@
 # syntax=docker/dockerfile:1
+###############################################################################
+#  Stock‑Insight Dockerfile
+#  • Single image for both Django web app (default) and Telegram bot worker.
+#  • Render Web Service → leave “Docker Command” blank (runs Gunicorn).
+#  • Render Background Worker → override CMD:  python manage.py telegrambot
+###############################################################################
 
 FROM python:3.12-slim
 
+# ────────────────────────────
+# Environment configuration
+# ────────────────────────────
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MPLBACKEND=Agg \
-    PORT=8000
+    PORT=8000     # default for local runs; Render injects its own
 
 WORKDIR /app
 
-# System packages (needed for psycopg2, PIL, etc.)
+# ────────────────────────────
+# System packages needed by many‑linux wheels (psycopg2‑binary, Pillow, etc.)
+# ────────────────────────────
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
@@ -18,15 +29,28 @@ RUN apt-get update && \
         ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
+# ────────────────────────────
+# Python dependencies (layer‑cache friendly)
+# ────────────────────────────
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --root-user-action=ignore -r requirements.txt
 
+# ────────────────────────────
+# Copy project source
+# ────────────────────────────
 COPY . .
 
-# For matplotlib PNG plot saving
+# Create directory for saved matplotlib plots (optional)
 RUN mkdir -p static/plots
 
+# ────────────────────────────
+# Expose port for local docker run (Render ignores EXPOSE for binding)
+# ────────────────────────────
 EXPOSE 8000
 
-# Default CMD = web app (overridden on Render for Telegram bot)
-CMD ["gunicorn", "stockinsight.wsgi:application", "--bind", "0.0.0.0:${PORT}", "--timeout", "120"]
+# ────────────────────────────
+# Default command: production web server
+# (Uses `sh -c` so $PORT is expanded at runtime)
+# ────────────────────────────
+CMD ["sh", "-c", "gunicorn stockinsight.wsgi:application --bind 0.0.0.0:$PORT --timeout 120"]
