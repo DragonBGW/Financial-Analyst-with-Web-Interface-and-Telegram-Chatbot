@@ -1,9 +1,8 @@
 # syntax=docker/dockerfile:1
 ###############################################################################
 #  Stock‑Insight Dockerfile
-#  • Single image for both Django web app (default) and Telegram bot worker.
-#  • Render Web Service → leave “Docker Command” blank (runs Gunicorn).
-#  • Render Background Worker → override CMD:  python manage.py telegrambot
+#  • Builds a single image for both Django web service (default CMD)
+#    and Telegram bot worker (override CMD on Render).
 ###############################################################################
 
 FROM python:3.12-slim
@@ -14,7 +13,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MPLBACKEND=Agg \
-    PORT=8000     # default for local runs; Render injects its own
+    PORT=8000
 
 WORKDIR /app
 
@@ -33,8 +32,8 @@ RUN apt-get update && \
 # Python dependencies (layer‑cache friendly)
 # ────────────────────────────
 COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --root-user-action=ignore -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
 # ────────────────────────────
 # Copy project source
