@@ -1,9 +1,0 @@
-pip install djangorestframework-simplejwt
-pip install yfinance
-pip install python-decouple
-pip install python-telegram-bot==22.1
-pip install gunicorn
-pip install whitenoise
-pip install django-environ
-pip install django-tailwind
-pip install stripe
