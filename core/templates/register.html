@@ -1,18 +1,80 @@
 {% extends "base.html" %}
 {% block title %}Register • Stock Insight{% endblock %}
+
 {% block content %}
 <div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
   <h1 class="text-2xl font-semibold mb-4">Create an account</h1>
-  <form method="post">
+
+  {# ── Validation errors ───────────────────────────────────────── #}
+  {% if form.errors %}
+    <div class="bg-red-100 text-red-800 p-3 rounded mb-4">
+      {% if form.non_field_errors %}
+        <p class="mb-1 font-medium">{{ form.non_field_errors|join:", " }}</p>
+      {% endif %}
+      {% for field in form %}
+        {% for error in field.errors %}
+          <p><strong>{{ field.label }}:</strong> {{ error }}</p>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {# ── Registration form ───────────────────────────────────────── #}
+  <form method="post" id="register-form">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mt-3">
+
+    {# ---- Username with "Suggest" button ---- #}
+    <div class="mb-4">
+      <label for="id_username" class="block font-medium mb-1">Username</label>
+      <div class="flex space-x-2">
+        {{ form.username }}
+        <button type="button" id="suggest-btn"
+                class="bg-gray-300 px-2 rounded text-sm whitespace-nowrap">
+          Suggest
+        </button>
+      </div>
+    </div>
+
+    {# ---- Password fields (render as is) ---- #}
+    <div class="mb-4">
+      {{ form.password1.label_tag }} {{ form.password1 }}
+    </div>
+    <div class="mb-4">
+      {{ form.password2.label_tag }} {{ form.password2 }}
+    </div>
+
+    <button type="submit"
+            class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mt-3">
       Register
     </button>
   </form>
+
   <p class="text-sm mt-3">
     Already have an account?
     <a href="{% url 'login' %}" class="text-blue-600 underline">Login here</a>
   </p>
 </div>
+
+{# ── Inline JS to fetch suggested username ────────────────────────── #}
+<script>
+document.getElementById('suggest-btn').addEventListener('click', async () => {
+  const btn  = document.getElementById('suggest-btn');
+  const userInput = document.getElementById('id_username');
+
+  btn.disabled = true;
+  btn.textContent = '…';
+
+  try {
+    const res  = await fetch("{% url 'suggest-username' %}");
+    if (!res.ok) throw new Error('Failed to fetch');
+    const data = await res.json();
+    userInput.value = data.username;
+  } catch (err) {
+    alert("Could not generate username. Please try again.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Suggest';
+  }
+});
+</script>
 {% endblock %}

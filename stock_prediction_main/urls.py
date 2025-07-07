@@ -14,40 +14,56 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+"""
+URL configuration for stock_prediction_main project.
+"""
+
 from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 
-# If you defined root_redirect in core/views_frontend.py
+# Front‑end & health views
 from core.views_frontend import root_redirect
 from core.view_health import healthz
-# ─── New billing / Stripe views ───────────────────
+
+# Stripe / billing views
 from core.views_billing import (
-    subscribe_view,            # GET ⇒ show plans page / POST ⇒ create CheckoutSession
-    billing_success_view,      # GET  ⇒ success redirect
-    billing_cancel_view,       # GET  ⇒ cancel redirect
+    subscribe_view,
+    billing_success_view,
+    billing_cancel_view,
 )
 
-
 urlpatterns = [
+    # —— Billing —— -----------------------------------------------------------
+    path("subscribe/",        subscribe_view,      name="subscribe"),
+    path("billing/success/",  billing_success_view, name="billing-success"),
+    path("billing/cancel/",   billing_cancel_view,  name="billing-cancel"),
 
-    # Billing routes  (put them high so they’re easy to spot)
-    path("subscribe/",     subscribe_view,     name="subscribe"),
-    path("billing/success/", billing_success_view, name="billing-success"),
-    path("billing/cancel/",  billing_cancel_view,  name="billing-cancel"),
-    
-    # Root URL → dashboard (or login) via redirect
-    path("", root_redirect, name="root"),         
+    # —— Misc —— --------------------------------------------------------------
+    path("",          root_redirect, name="root"),
+    path("healthz/",  healthz,       name="healthz"),
 
-    path("healthz/", healthz, name="healthz"),      #  ← critical endpoint
-
-    # Django admin
+    # —— Admin —— -------------------------------------------------------------
     path("admin/", admin.site.urls),
 
-    # All API + frontend routes that live in core/urls.py
+    # —— API —— ---------------------------------------------------------------
     path("api/v1/", include("core.urls")),
 ]
 
-# Serve uploaded plots in development
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# ─────────────────────────────────────────────────────────────────────────────
+# Serve static & media files **only** in development (DEBUG = True)
+# In production use nginx, WhiteNoise, S3, etc.
+# ─────────────────────────────────────────────────────────────────────────────
+if settings.DEBUG:
+    # /static/  (Tailwind, JS, generated plots, etc.)
+    urlpatterns += static(
+        settings.STATIC_URL,
+        document_root=settings.STATICFILES_DIRS[0]  # BASE_DIR / "static"
+    )
+    # /media/   (if you ever store uploads separately)
+    if hasattr(settings, "MEDIA_URL") and hasattr(settings, "MEDIA_ROOT"):
+        urlpatterns += static(
+            settings.MEDIA_URL,
+            document_root=settings.MEDIA_ROOT
+        )

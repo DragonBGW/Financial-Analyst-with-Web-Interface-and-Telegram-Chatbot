@@ -164,7 +164,11 @@ TEMPLATES[0]["DIRS"] = [BASE_DIR / "core" / "templates"]
 STATIC_URL = "/static/"
 
 # extra static dirs (for Tailwind CDN we only need this in dev)
-STATICFILES_DIRS = [BASE_DIR / "core" / "static"]
+STATICFILES_DIRS = [
+    BASE_DIR / "static",          # ← add this
+    BASE_DIR / "core" / "static", # keep if you have assets here too
+]
+
 
 LOGIN_URL = '/api/v1/frontend/login/'
 
@@ -178,3 +182,11 @@ STRIPE_SECRET_KEY  = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PRICE_ID    = os.getenv("STRIPE_PRICE_ID", "price_monthly_pro")  # create in Stripe dashboard
 
 
+# Add these at the bottom
+STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# For plot storage
+PLOTS_DIR = BASE_DIR / "media" / "plots"
+os.makedirs(PLOTS_DIR, exist_ok=True)

@@ -5,30 +5,39 @@ x-common: &common
   build:
     context: .          # use the same Dockerfile in project root
   volumes:
-    - .:/app            # matches WORKDIR /app in the Dockerfile
+    - .:/app            # Mount local code into container (for development)
+    - static_volume:/app/static  # Optional: persist static files like plots
   env_file:
-    - .env
+    - .env              # Environment variables file
 
 services:
+  # ─── Django Web App ─────────────────────────────────────────────
   web:
     <<: *common
     build:
       context: .
-      target: web       # ⬅️  use the “web” stage from Dockerfile
+      target: web       # Use the “web” stage from Dockerfile
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "8000:8000"
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fs", "http://localhost:8000/healthz/"]
       interval: 30s
       timeout: 10s
       retries: 3
 
+  # ─── Telegram Bot Service ───────────────────────────────────────
   bot:
     <<: *common
     build:
       context: .
-      target: bot       # ⬅️  use the “bot” stage from Dockerfile
+      target: bot       # Use the “bot” stage from Dockerfile
     command: python manage.py telegrambot
     depends_on:
       - web
+    restart: unless-stopped
+
+# ─── Named volumes ────────────────────────────────────────────────
+volumes:
+  static_volume:

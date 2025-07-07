@@ -3,6 +3,7 @@
 
 {% block content %}
 <div class="grid gap-6 lg:grid-cols-3">
+
   <!-- Ticker form -->
   <div class="lg:col-span-1 bg-white p-5 rounded-xl shadow">
     <h2 class="text-xl font-semibold mb-3">Predict Next‑Day Price</h2>
@@ -25,12 +26,12 @@
       <span id="pred-price" class="text-green-600 text-lg font-semibold"></span>
     </p>
     <div class="grid md:grid-cols-2 gap-4">
-      <img id="plot-closing" class="rounded-xl shadow" />
-      <img id="plot-cmp" class="rounded-xl shadow" />
+      <img id="plot-closing" class="rounded-xl shadow" alt="Closing price chart" />
+      <img id="plot-cmp" class="rounded-xl shadow" alt="Prediction comparison chart" />
     </div>
   </div>
 
-  <!-- History -->
+  <!-- History Table -->
   <div class="lg:col-span-3 bg-white p-5 rounded-xl shadow">
     <h2 class="text-xl font-semibold mb-3">Previous Predictions</h2>
     <table class="w-full text-sm">
@@ -48,15 +49,26 @@
   </div>
 </div>
 
-<!-- Inline JS -->
+<!-- Inline JavaScript -->
 <script>
 const ACCESS_TOKEN = "{{ access_token|default:'' }}";
+
+/**
+ * Convert backend file path (e.g. "static\\plots\\abc.png" or "static/plots/abc.png")
+ * to a browser URL like "/static/plots/abc.png".
+ */
+function normalizePath(p) {
+  p = p.replace(/\\/g, '/');        // Windows ➜ POSIX slashes
+  if (!p.startsWith('/')) p = '/' + p;  // ensure single leading slash
+  return p;
+}
 
 async function fetchHistory() {
   const res = await fetch('/api/v1/predictions/', {
     headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
   });
   if (!res.ok) return;
+
   const data = await res.json();
   const tbody = document.getElementById('hist-body');
   tbody.innerHTML = '';
@@ -77,6 +89,7 @@ document.getElementById('ticker-form').addEventListener('submit', async e => {
   e.preventDefault();
   const msg = document.getElementById('form-msg');
   msg.textContent = 'Predicting…';
+
   const ticker = document.getElementById('ticker-input').value.trim();
   const res = await fetch('/api/v1/predict/', {
     method: 'POST',
@@ -86,17 +99,22 @@ document.getElementById('ticker-form').addEventListener('submit', async e => {
     },
     body: JSON.stringify({ ticker })
   });
+
   if (!res.ok) {
     msg.textContent = 'Error: ' + (await res.text());
     return;
   }
+
   const p = await res.json();
   msg.textContent = 'Success!';
   document.getElementById('prediction-card').classList.remove('hidden');
   document.getElementById('pred-ticker').textContent = p.ticker;
   document.getElementById('pred-price').textContent = parseFloat(p.next_price).toFixed(2);
-  document.getElementById('plot-closing').src = '/' + p.plot_closing.replace(/\\\\/g, '/');
-  document.getElementById('plot-cmp').src     = '/' + p.plot_cmp.replace(/\\\\/g, '/');
+
+  const ts = Date.now();  // cache‑buster
+  document.getElementById('plot-closing').src = normalizePath(p.plot_closing) + '?v=' + ts;
+  document.getElementById('plot-cmp').src     = normalizePath(p.plot_cmp)     + '?v=' + ts;
+
   fetchHistory();
 });
 
@@ -104,4 +122,3 @@ document.getElementById('ticker-form').addEventListener('submit', async e => {
 if (ACCESS_TOKEN) fetchHistory();
 </script>
 {% endblock %}
-
