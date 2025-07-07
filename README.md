@@ -66,7 +66,7 @@ MODEL_PATH=stock_prediction_model.keras
 docker compose up --build
 
 2.If you want to rebuild after a change:
-docker compose down
+docker compose down (check if any other dockerfile is running or not)
 docker compose up --build
 After starting the Web App in your localHost machine, you will see something like this 
 <img width="487" alt="image" src="https://github.com/user-attachments/assets/a49d187e-6379-4c1f-85c6-51f37dd0f036" />
@@ -89,10 +89,21 @@ Also you can see the same thing in website,
 <img width="491" alt="image" src="https://github.com/user-attachments/assets/af0a024f-bf8c-48ab-838d-3a42d9ba74cc" />
 
 Or locally:
-python manage.py telegrambot
+python manage.py telegrambot 
+python manage.py runserver 
+With and Without docker, in both cases you will see like the following,
+In the Telegrambot, while giving "/predict NVDA" (that is for NVIDIA stock ticcker), you will see like following ->
+<img width="439" alt="image" src="https://github.com/user-attachments/assets/d1ec2406-3564-40f3-8386-1a5a91870ccd" />
+
+<img width="615" alt="image" src="https://github.com/user-attachments/assets/f34e3ea9-8d17-4421-ba39-b90c957d67e0" />
+
+By giving /latest command, you can see like the following,
+<img width="435" alt="image" src="https://github.com/user-attachments/assets/30cc1e1d-1526-4648-96a8-5474367ef2a1" />
 
 Try:
 /start
+/predict TSLA 
+/latest
 
 🧪 Local Development (non-Docker)
 Install dependencies:
@@ -112,6 +123,13 @@ b. Input a stock ticker (e.g., AAPL) to get predictions.
 c. View price plots and ML metrics (RMSE, R²).
 d.Upgrade to Pro via Stripe subscription.
 4. Pro-only features gated by is_pro flag in user profile.
+
+In the web, You can search the organisation stock by its ticker name, and the related graphs and stock prices will appear
+<img width="483" alt="image" src="https://github.com/user-attachments/assets/2e44df4e-6448-4cf5-9924-1198c08af721" />
+
+Also, in your account log, you will see your search history as,
+<img width="482" alt="image" src="https://github.com/user-attachments/assets/98dc0213-db5a-4b03-aede-e9286e3de76d" />
+
 
 
 💳 Stripe Integration
