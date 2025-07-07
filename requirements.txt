@@ -3,24 +3,31 @@ Django==5.1.6
 djangorestframework==3.16.0
 djangorestframework-simplejwt==5.5.0
 python-decouple==3.8
-whitenoise==6.6.0         # serve static files in DEBUG=False
-gunicorn==22.0.0          # prod WSGI server
-python-dotenv==1.0.1
+django-environ==0.11.2          # if you actually use it
+whitenoise==6.6.0               # serve static files in DEBUG=False
+gunicorn==22.0.0                # prod WSGI server
+
 # ─── ML / Prediction ───────────────────────────────────────────────
 numpy==1.26.4
 pandas==2.2.2
 scikit-learn==1.5.1
 matplotlib==3.9.2
+tensorflow==2.16.1              # for CPU, use tensorflow-cpu==2.16.1
+
+# ─── Data / Finance ───────────────────────────────────────────────
 yfinance==0.2.38
-tensorflow==2.16.1        # or tf-cpu to slim down
-#keras==2.16.1
+stripe==9.4.0
 
-# ─── Optional / Upcoming Milestones ────────────────────────────────
-python-telegram-bot[rate-limiter]==22.1 # Telegram bot
-redis==5.0.4              # Celery broker / rate‑limit cache
+# ─── Telegram bot ─────────────────────────────────────────────────
+python-telegram-bot[rate-limiter]==22.1
+
+# ─── Async tasks / caching (future) ───────────────────────────────
 celery==5.3.6
-stripe==9.4.0             # paid memberships
+redis==5.0.4
 
-# ─── Utility ───────────────────────────────────────────────────────
+# ─── Front‑end tooling ────────────────────────────────────────────
+django-tailwind==3.8.0          # pick the version you use
+
+# ─── Utilities ────────────────────────────────────────────────────
 requests==2.32.3
 pillow==10.4.0
