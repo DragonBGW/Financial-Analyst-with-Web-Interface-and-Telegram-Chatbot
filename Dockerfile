@@ -26,7 +26,7 @@ COPY manage.py             ./manage.py
 COPY stock_prediction_main ./stock_prediction_main
 COPY core                  ./core
 COPY templates             ./templates
-COPY static                ./static
+# COPY static                ./static
 # Add more COPY lines only if the folder exists:
 # COPY users               ./users
 # COPY api                 ./api
